@@ -11,6 +11,7 @@
   "risk_level": "medium",
   "auto_approve": true,
   "status": "completed",
+  "branch_disposition": "分支处置(2026-09-13 人工裁决): 保留 hotl/p1-local-reading 不合回 main、不 push、不开 PR; 等产品负责人真机自测 8 项验收通过后再决定合并. tag p1-local-reading-done 打在 a870587. 下一步: P2 起草(phase 设计文档 + workflow), 范围排序由产品负责人采纳(书签笔记高亮 -> 漫画引擎+CBZ -> 仿真卷曲楷体 -> PDF/MOBI/AZW3 -> 在线源+下载导出).",
   "current_step": 17,
   "steps": {
     "1": {"status": "done", "attempts": 1, "note": "JDK21 via apt path(a)"},
