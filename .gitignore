@@ -1,0 +1,25 @@
+# Gradle / AGP 构建产物
+.gradle/
+build/
+app/build/
+.kotlin/
+local.properties
+
+# 本机环境注入（JAVA_HOME_21 / ANDROID_HOME / 代理）
+.ngbook-env
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# 临时与验证产物
+/tmp/
+*.apk
+!app/src/**/*.apk
+captures/
+.externalNativeBuild/
+.cxx/
+
+# HOTL 执行期日志（保留 state 与 CURRENT_RUN 作为流程记录）
+.hotl/logs/
