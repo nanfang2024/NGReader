@@ -1,0 +1,2 @@
+com.book.ng
+string app_name
