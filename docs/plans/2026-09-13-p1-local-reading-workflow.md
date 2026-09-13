@@ -128,7 +128,7 @@ max_iterations: 3
 verify: bash -lc 'set -a; . /workspace/.ngbook-env; cd /workspace && gradle :app:testDebugUnitTest --tests "*ProgressResume*" --console=plain' 2>&1 | grep -q 'BUILD SUCCESSFUL'
 gate: auto
 
-- [ ] **Step 16: 开源工程收尾（LICENSE / README / .gitignore）**
+- [x] **Step 16: 开源工程收尾（LICENSE / README / .gitignore）**
 action: `curl -sL https://www.gnu.org/licenses/gpl-3.0.txt -o /workspace/LICENSE`；创建 `/workspace/.gitignore`：.gradle/、build/、local.properties、.ngbook-env、/tmp 产物、.idea/、*.iml；创建 `/workspace/README.md`：项目一句话简介、功能清单（对照 initiative 愿景）、五阶段路线图（P1 已完成项勾选）、构建说明（JDK21+SDK35+gradle assembleDebug）、免责声明（不内置内容源、用户自带源合规边界、GPL-3.0）；`git add -A && git commit -m "chore: open-source housekeeping (license, readme, gitignore)"`。
 verify:
   - type: artifact
