@@ -140,7 +140,7 @@ verify:
     command: test -f /workspace/README.md && test -f /workspace/.gitignore && git -C /workspace log -1 --pretty=%s | grep -q 'open-source housekeeping'
 gate: auto
 
-- [ ] **Step 17: 全量回归 + APK 交付 + 阶段验收**
+- [x] **Step 17: 全量回归 + APK 交付 + 阶段验收**
 action: `gradle :app:testDebugUnitTest :app:assembleDebug --console=plain` 全量回归；汇总输出：APK 路径与体积、各测试类通过数、版本矩阵最终值（从 libs.versions.toml 读出贴进 PR 说明）；`git tag p1-local-reading-done`；将 app-debug.apk 交付产品负责人真机安装，验收项：导入 TXT/EPUB 阅读、翻页/滚动切换、杀进程续读、明暗与配色切换。
 loop: until 全量绿
 max_iterations: 4
@@ -153,3 +153,5 @@ verify:
       kind: matches-glob
       value: "app-debug.apk"
 gate: human
+
+人工门裁决（2026-09-13）：全量回归 49 例全绿、APK 16.47 MiB、tag `p1-local-reading-done` 已打；产品负责人选择「先按通过落账，我自测」——真机 8 项验收（TXT UTF-8/GBK 导入、EPUB 秒开+TOC+反色、翻页/滚动切换、字号连改不回书首、杀进程续读、明暗×四配色、logcat 无崩溃）列为**待复验项**，不阻塞 P1 关闭。P1 至此关闭。
