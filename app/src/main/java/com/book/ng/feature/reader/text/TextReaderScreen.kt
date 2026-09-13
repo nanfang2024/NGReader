@@ -79,7 +79,12 @@ fun TextReaderScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(background),
+            .background(background)
+            .onSizeChanged { size ->
+                if (size.width > 0 && size.height > 0) {
+                    viewModel.onViewportSize(size.width, size.height)
+                }
+            },
     ) {
         val pendingPagination = state.mode == ReadMode.PAGING && state.document == null
         when {
@@ -89,7 +94,6 @@ fun TextReaderScreen(
                 state = state,
                 menuVisible = menuVisible,
                 onToggleMenu = { menuVisible = !menuVisible },
-                onViewportSize = viewModel::onViewportSize,
                 onPageChange = viewModel::onPageChange,
             )
             else -> ScrollContent(
@@ -131,7 +135,6 @@ private fun PagingContent(
     state: ReaderUiState,
     menuVisible: Boolean,
     onToggleMenu: () -> Unit,
-    onViewportSize: (Int, Int) -> Unit,
     onPageChange: (Int) -> Unit,
 ) {
     val doc = state.document ?: return
@@ -151,10 +154,7 @@ private fun PagingContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .onSizeChanged { size ->
-                containerSize = size
-                onViewportSize(size.width, size.height)
-            }
+            .onSizeChanged { size -> containerSize = size }
             .pointerInput(state.mode, doc.pageCount) {
                 detectTapGestures { offset ->
                     val width = size.width.toFloat()
