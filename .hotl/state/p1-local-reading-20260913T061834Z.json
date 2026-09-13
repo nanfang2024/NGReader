@@ -10,8 +10,9 @@
   "executor_mode": "loop",
   "risk_level": "medium",
   "auto_approve": true,
-  "status": "running",
+  "status": "interrupted",
   "current_step": 10,
+  "interrupt_note": "用户于Step 10迭代#2处中断: TxtChapterSplitter.kt与TxtChapterSplitterTest.kt已写完(含3处自检修正+模板$第i章→${i}修复已保存), 但verify尚未重跑通过, Step 10 checkbox未勾. Step 1-9已完成并落账. 恢复方法: 直接重跑verify(gradle :app:testDebugUnitTest --tests \"*TxtChapterSplitter*\"), 全绿后勾checkbox+state记steps.10 done+current_step=11, 进Step 11(TextPaginator)",
   "steps": {
     "1": {"status": "done", "attempts": 1, "note": "JDK21 via apt path(a)"},
     "2": {"status": "done", "attempts": 1, "note": "SDK cmdline-tools+platform35+bt35.0.0 (后补36/37.0)"},
