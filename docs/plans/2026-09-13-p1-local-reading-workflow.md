@@ -155,3 +155,14 @@ verify:
 gate: human
 
 人工门裁决（2026-09-13）：全量回归 49 例全绿、APK 16.47 MiB、tag `p1-local-reading-done` 已打；产品负责人选择「先按通过落账，我自测」——真机 8 项验收（TXT UTF-8/GBK 导入、EPUB 秒开+TOC+反色、翻页/滚动切换、字号连改不回书首、杀进程续读、明暗×四配色、logcat 无崩溃）列为**待复验项**，不阻塞 P1 关闭。P1 至此关闭。
+
+## 真机缺陷热修（P1 关闭后追加，2026-09-13）
+
+用户真机自测报障"导入 txt 打开一直转圈"。定位为视口-文档循环等待死锁：
+`onSizeChanged` 原挂在仅 `document != null` 才渲染的 `PagingContent` 内，而
+ViewModel 必须先拿到视口才执行首次分页。旧测试手工调 `onViewportSize` 绕过了
+UI 布线，故 49 例全绿未能拦截（Step 17 登记的"测试判据盲区"如约兑现）。
+
+- 修复：视口上报上移至 `TextReaderScreen` 最外层 Box，与文档加载解耦（09a5660）
+- 回归：新增端到端 `PagingViewportContractTest`（RED 复现转圈 → GREEN），全量 50 例全绿
+- 产物：新 debug APK 17172075B，待用户重装复验

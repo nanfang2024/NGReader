@@ -14,22 +14,114 @@
   "branch_disposition": "分支处置(2026-09-13 人工裁决): 保留 hotl/p1-local-reading 不合回 main、不 push、不开 PR; 等产品负责人真机自测 8 项验收通过后再决定合并. tag p1-local-reading-done 打在 a870587. 下一步: P2 起草(phase 设计文档 + workflow), 范围排序由产品负责人采纳(书签笔记高亮 -> 漫画引擎+CBZ -> 仿真卷曲楷体 -> PDF/MOBI/AZW3 -> 在线源+下载导出).",
   "current_step": 17,
   "steps": {
-    "1": {"status": "done", "attempts": 1, "note": "JDK21 via apt path(a)"},
-    "2": {"status": "done", "attempts": 1, "note": "SDK cmdline-tools+platform35+bt35.0.0 (后补36/37.0)"},
-    "3": {"status": "done", "attempts": 1, "note": "骨架 10 文件"},
-    "4": {"status": "done", "attempts": 12, "gate": "human_approved", "note": "BUILD SUCCESSFUL+apk(13MB). 最终矩阵: AGP9.4.0/Gradle9.6.0/Kotlin2.4.20/KSP2.3.12/Hilt2.60.1/ComposeBom2026.09.00/compileSdk37. 校准12次, 超max_iterations=5后经用户裁决继续(降Hilt->改升AGP9代). 偏差: workflow预案为compileSdk36+AGP8系, 实测androidx 2026.09要求minAgp9.1+sdk37. 环境侧: JVM代理注入, platform android-37.0, PATH注入/opt/gradle-9.6.0/bin, OOM收紧heap至1536m. 人工门批准: 接受新栈继续Step5"},
-    "5": {"status": "done", "attempts": 1, "gate": "auto_approved", "note": "Color.kt(JellyPalette 4套×light/dark马卡龙调色板)+Theme.kt(NGBookTheme(themeMode,palette,content), JellyThemeMode{SYSTEM,LIGHT,DARK})+Glass.kt(Modifier.jellyGlass 渐变半透明+白描边+投影)+MainActivity显式接入MATCHA/SYSTEM. verify: assembleDebug BUILD SUCCESSFUL in 21s"},
-    "6": {"status": "done", "attempts": 3, "gate": "auto_approved", "note": "JellySettingsRepository(DataStore jelly_prefs, Flow<JellySettings>, setThemeMode/setPalette, name存储+enum容错回退)+MainActivity collectAsStateWithLifecycle驱动主题+JellyThemeTest 3例全绿. 校准: ①Robolectric test worker JVM不继承代理→tasks.withType<Test>转发http(s).proxy系统属性; ②compose rule同一测试禁止二次setContent→改并行双NGBookTheme捕获. 首拉android-all-instrumented-15成功, Robolectric 4.16.1+sdk35兼容确认"},
-    "7": {"status": "done", "attempts": 1, "gate": "auto_approved", "note": "Models.kt(BookFormat 8值/LibraryBook/ReadMode/ReadingLocator)+LocatorCodec(v1:章:页:偏移:p|s, 非法5类拒绝, bookId不入串由进度表列承载)+FormatParser接口+ParsedBook sealed(Text/Comic)+TextChapter+LocatorCodecTest 8例全绿"},
-    "8": {"status": "done", "attempts": 2, "gate": "auto_approved", "note": "room-ktx/room-compiler入依赖. BookEntity(books+index addedAt)/ProgressEntity(bookId主键FK CASCADE)/BookDao(Insert REPLACE upsert+lastReadAt优先排序+getById+deleteById)/ProgressDao(Upsert+Flow+count+delete)/NGBookDatabase v1/Room+DAO Hilt Module/LibraryRepository(filesDir/books uuid.ext拷贝导入+delete连带删文件)/ProgressRepository(save=get Flow经LocatorCodec+bookId回填)/DaoTest 4例全绿(含排序、upsert覆盖、外键级联). 校准: Room 2.8 RoomDatabase.query(String)签名变更为SupportSQLiteQuery→改DAO count(); 测试Context用RuntimeEnvironment.getApplication()避免androidx.test:core依赖"},
-    "9": {"status": "done", "attempts": 2, "gate": "auto_approved", "note": "FormatSniffer(head/tail各64KB读, PDF%PDF→ZIP魔数+ISO-8859-1串搜container.xml=EPUB/图片后缀=CBZ/否则ZIP→偏移60 BOOKMOBI=MOBI→扩展名txt→UNKNOWN)+TxtCharsetDetector(BOM三分支→UTF-8严格REPORT校验→GBK REPORT解码+CJK 0x4E00-0x9FFF非空白占比≥0.6→兜底UTF_8, decode用REPLACE, stripBom). FormatSnifferTest 8例+TxtCharsetDetectorTest 9例纯JVM全绿. 校准: 不可见字符字面量(U+FEFF/U+FFFD)写入丢失→改\\u转义; String无.size用.length"},
-    "10": {"status": "done", "attempts": 2, "gate": "auto_approved", "note": "TxtChapterSplitter按字符偏移逐行扫描(不split保offset精确, 行尾剔\\r容CRLF), TITLE_REGEX命中<2回退3000字第N部分, 空文件单空章, 章区间=[标题行起,下标题行起), title=trim截30字. 7例全绿(50章中文/阿拉伯混编边界连续、CRLF、无题回退、单题回退、空白容错、截断、空文件). 校准: ①Kotlin模板$i后接中文被并入标识符→${i}; ②trim按Character.isWhitespace会去全角空格U+3000. 用户中断一次后resumed"},
-    "11": {"status": "done", "attempts": 1, "gate": "auto_approved", "note": "TextPaginator: Viewport(dp/sp+行距倍数+padding)→逐章StaticLayout测量(setLineSpacing(0,mult),setIncludePad=false), 行高=getLineBottom差分, line>0才断页保每页≥1行防死循环, PageSpec用全局字符偏移[chapterIndex,startOffset,endOffset). PagedDocument.globalIndexOf二分定位(双条件chapterIndex<目标或同章start<=off, 再校验offset in start..end含inclusive终点). 6例Robolectric(sdk35)全绿: 1万字10章>10页、幂等、边界连续、midpoint回定位、外来章-1、空章单空页. 确认Robolectric NATIVE graphics下StaticLayout真实文本度量可用(解除Step10遗留风险)"},
-    "12": {"status": "done", "attempts": 2, "gate": "auto_approved", "note": "ShelfViewModel(combine books+observeAll进度+importing+snackbar→ShelfUiState, import(uris)拷至cacheDir临时文件→FormatSniffer嗅探→importFile(sniffed覆盖扩展名推断)→删临时, queryDisplayName经OpenableColumns, 点击路由TXT/EPUB其余Snackbar)+ProgressDao.getAll/ProgressRepository.observeAll(runCatching容非法locator)+importFile加sniffed参数+Theme加LocalIsDark供jellyGlass明暗+ShelfScreen(LazyVerticalGrid Adaptive150dp/jellyGlass卡片/首字hash三组渐变占位封面/角标/空态/FAB导入/OpenMultipleDocuments在MainActivity注册, shelfViewModel by viewModels()作用域共享)+NavGraph(shelf+reader_txt|epub/{bookId} LongType占位). 校准: ①Kotlin模板$label后接中文again重犯→${label}(Step10教训需全局执行); ②写后即清一段dead code空判断块. 偏差落账: workflow'进度百分比角标'改progressLabel'第N章·第M页'(书架不解析文件无总页数, P1合理简化). verify: assembleDebug BUILD SUCCESSFUL in 16s"},
-    "13": {"status": "done", "attempts": 2, "gate": "auto_approved", "note": "ReaderViewModel(加载管线detect→decode→stripBom→split→locator恢复→repaginate锚定, onPageChange/onModeChange/onFontSizeChange±2clamp14-30/onViewportSize/onScrollChapterChange, persist即时写+onCleared独立saveScope兜底)+TextReaderScreen(翻页:HorizontalPager+StaticPage每页AndroidView画StaticLayout公式与paginator一致+左右1/3tap中央菜单+settledPage上报; 滚动:LazyColumn按章+snapshotFlow firstVisibleItemIndex上报; ReaderOverlay顶部标题页码/底部模式切换字号进度, jellyGlass)+NavGraph reader_txt接入TextReaderScreen(hiltViewModel从entry取bookId). 新增依赖hilt-navigation-compose 1.4.0(androidx.hilt, 实测metadata有stable). 校准: 编译迭代1错6处→①BOM2026 detectTapGestures onTap非suspend→rememberCoroutineScope包裹; ②Modifier.align需BoxScope→overlay内包Box(fillMaxSize); ③ExitTransition.plus(EnterTransition)返回EnterTransition→exit改slideOutVertically(targetOffsetY=), 顺带修trailing lambda实绑initialOffsetX的语义bug→全部具名参数. 编译前自查修3处: TextChapter错引domain.text(实为domain.parser), 空章节coerceIn(0,-1)崩溃隐患, 滚动恢复改initialFirstVisibleItemIndex防首帧误报章0覆盖恢复值. 偏差落账: workflow'滚动位置映射scrollOffset'简化为章级定位(scrollOffset=chapter.startOffset, 页内偏移P1不做). verify: assembleDebug BUILD SUCCESSFUL in 49s"},
-    "14": {"status": "done", "attempts": 6, "gate": "auto_approved", "note": "EpubParseTest failures=0 + assembleDebug BUILD SUCCESSFUL in 1m41s, app-debug.apk 17.2MB. Readium 3.4.0(shared+streamer)+desugar_jdk_libs 2.1.5+coreLibraryDesugaring. EpubFormatParser(AssetRetriever+DefaultHttpClient+EpubParser→Publication, unzipToCache整书解压cacheDir+zip-slip防护), EpubReaderViewModel(loadBook/selectChapter/scrollReports debounce600 persist/onCleared saveScope), EpubReaderScreen(WebView loadDataWithBaseURL渲染+dark invert滤镜evaluateJavascript+pendingScrollY恢复+TOC抽屉jellyGlass), NavGraph reader_epub接入删占位. 校准5轮+人工授权第6轮: #1 desugaring缺失; #2 Link.title/Metadata.title实为String?(javap平台类型误导)+AnimatedVisibility DSL_SCOPE_VIOLATION; #3 Box包裹无效; #4 断言败→修样本manifest补item title(逐行重写v3成功,minidom校验); #5 字节码实证EpubParser与ManifestAdapter完全不读OPF item title→escalate, 用户裁决toc回填; #6 publication.manifest.tableOfContents属性名(getter getTableOfContents非toc)+一次绿. 关键新知: Robolectric×Readium实链路可跑(解除头号风险); AnimatedVisibility修法=提取独立@Composable(TocDrawer); MutableStateFlow.update lambda非suspend须前置suspend调用. 偏差落账: ①整书解压+baseUrl替代按需解压(P1秒开语义由cache复用保证); ②章节标题从nav.xhtml tableOfContents按href匹配回填(streamer不读item title); ③locator page=0/scrollOffset=scrollY/SCROLL. 遗留warning不阻塞: debounce FlowPreview, hiltViewModel迁包deprecation"},
-    "15": {"status": "done", "attempts": 4, "gate": "human_approved_round4", "note": "ProgressResumeTest 3例全绿(tests=3 failures=0 errors=0, 13.2s): txtSavedPageTwelveIsRestoredAfterReopen 1.56s / fontSizeChangeKeepsSavedContentAnchor / epubOpensAtSavedChapterAndScroll 7.2s. 迭代史: #1 ViewModel.clear() internal→改ViewModelStore.put+clear公开路径; #2 超时; #3 超时+线程取证(发现saveScope×DB-close竞态: onCleared兜底写库与@After database.close抢跑, stderr实证IllegalStateException re-open already-closed), 3轮预算耗尽→escalate, 用户裁决授权第4轮(定向修@After排空+测试2稳健判据). #4a 双探针(scope金丝雀+外部金丝雀+lateProbe cause链)取证: scope=RAN/scopeCompleted=true/lateCause=null/system-err全空(排空修复runBlocking{delay(1000)}生效), 推翻前轮'协程从未入队'结论→真因=MutableStateFlow等值去重(Robolectric下StaticLayout测量不随fontSize变化, 新旧PagedDocument结构相等→data class copy被update吞掉, document!==doc1永不成立). #4b 判据从'引用更换'改哨兵协程vm.viewModelScope.launch(Dispatchers.Default){}.join(), 全绿. 附带修复产品缺陷(非Robolectric假象): onFontSizeChange在viewportPx==null时仍launch重排且anchorOffset=null→重开时序(先字号后视口)下该job会读到已设好的视口并以anchor=null重排, 走'本章首页'回退把保存位置2906吞成1544→改为视口未测量时只记录字号不排队重排(视口到来时带正确锚点重排). 偏差落账: (b)用例判据=内容锚点startOffset落库+重开同锚点, 非字面'初始页号相等'(字号变化必然改页数, 以字符偏移锚定才是正确语义); 哨兵join非严格FIFO保证, Robolectric派发时序移交Step17真机复验"},
-    "16": {"status": "done", "attempts": 1, "gate": "auto_approved", "note": "开源收尾三产物齐备. LICENSE: curl gnu.org gpl-3.0.txt HTTP200 35149B/674行. README.md: 69行中文, 含简介(GPL-3.0/com.book.ng/0.1.0)、功能清单(已实现与未实现诚实分列: SAF导入+魔数嗅探/TXT编码识别切章分页/翻页滚动双模式/字号重排锚点保持/EPUB Readium+WebView+反色+TOC/locator三处写回续读/书架网格进度角标/JellyTheme明暗×四配色; 未实现: 卷曲仿真+水墨楷体/书签笔记/PDF-MOBI-AZW3-CBZ实际渲染/在线源聚合/批量下载导出)、五阶段路线图(P1标注'代码与单测完成, 待全量回归与真机验收')、构建工具链表+命令、免责声明6条. 每条事实先读源核验(settings.gradle.kts aliyun镜像行/app/build.gradle.kts 代理转发+compileSdk37/libs.versions.toml版本矩阵/docs/designs/ngbook.md Phase表). .gitignore: 新建(.gradle/build/app/build/.kotlin/local.properties/.ngbook-env/.idea/*.iml/captures/.cxx/.hotl/logs, *.apk排除但保留src内测试资源). 仓库卫生: git rm -r --cached 摘除误入库构建产物773个+build/reports 1个+环境注入文件(local.properties/.ngbook-env), rm 删除环境注入的3字节垃圾文件'##', 跟踪文件 808->53(文件均留盘). 偏差落账: workflow预案单笔'chore: open-source housekeeping'提交->实际拆两笔保历史卫生(bca9923 feat 功能代码23文件+2253行 / d40cdd0 chore 开源收尾), verify契约(末笔subject含open-source housekeeping)不受影响. 未push远端, 仅本地分支 hotl/p1-local-reading. verify: test -f LICENSE -a -f README.md -a -f .gitignore && git log -1 --pretty=%s | grep -q 'open-source housekeeping' -> VERIFY_OK; git status --short 空(工作树干净)"},
-    "17": {"status": "done", "attempts": 1, "gate": "human_deferred_selftest", "note": "全量回归(强制 --rerun, 非缓存): 9 测试类 49 例全绿 failures=0 errors=0 skipped=0, 累计 13.28s. 明细: DaoTest4/FormatSnifferTest8/EpubParseTest1/LocatorCodecTest8/TxtChapterSplitterTest7/TxtCharsetDetectorTest9/ProgressResumeTest3/TextPaginatorTest6/JellyThemeTest3. APK: app/build/outputs/apk/debug/app-debug.apk 17272293B(16.47MiB), aapt2 实测 package=com.book.ng versionCode=1 versionName=0.1.0 minSdk24 targetSdk35 compileSdk37. workflow 两条 verify 均通过(BUILD SUCCESSFUL + apk artifact). tag: p1-local-reading-done(annotated, 打在记账提交 bde60f1). 版本矩阵定稿见 README 与 libs.versions.toml. 人工门裁决: 用户选择'先按通过落账, 我自测'->真机 8 项验收(导入TXT含UTF-8/GBK、导入EPUB秒开+TOC+反色、翻页/滚动切换、字号连改不回书首、杀进程续读、明暗×四配色、logcat无崩溃)列为**待复验项**, 不阻塞 P1 关闭. 环境限制如实登记: 沙箱无 /dev/kvm、无 emulator、adb 无设备->无法在沙箱内做真机/模拟器冒烟. 移交项: ①Robolectric 哨兵 join 非严格 FIFO, 字号重排时序以真机复验为准(承 Step15); ②非阻塞 deprecation: debounce 需 @OptIn(FlowPreview::class)、hiltViewModel 迁包告警; ③Gradle wrapper 未生成(依赖 PATH 注入 9.6.0); ④远端 push 与 PR 未做(等分支处置决策). P2 意向(用户勾选全部四项+新问): 书签/笔记/高亮、仿真翻页+水墨楷体、PDF/MOBI/AZW3/CBZ 渲染补齐、在线漫画源聚合+批量下载导出, 另问'翻页支持上下吗'(已答: P1 有 SCROLL 上下连续滚动, 垂直逐屏翻页未实现)"}
+    "1": {
+      "status": "done",
+      "attempts": 1,
+      "note": "JDK21 via apt path(a)"
+    },
+    "2": {
+      "status": "done",
+      "attempts": 1,
+      "note": "SDK cmdline-tools+platform35+bt35.0.0 (后补36/37.0)"
+    },
+    "3": {
+      "status": "done",
+      "attempts": 1,
+      "note": "骨架 10 文件"
+    },
+    "4": {
+      "status": "done",
+      "attempts": 12,
+      "gate": "human_approved",
+      "note": "BUILD SUCCESSFUL+apk(13MB). 最终矩阵: AGP9.4.0/Gradle9.6.0/Kotlin2.4.20/KSP2.3.12/Hilt2.60.1/ComposeBom2026.09.00/compileSdk37. 校准12次, 超max_iterations=5后经用户裁决继续(降Hilt->改升AGP9代). 偏差: workflow预案为compileSdk36+AGP8系, 实测androidx 2026.09要求minAgp9.1+sdk37. 环境侧: JVM代理注入, platform android-37.0, PATH注入/opt/gradle-9.6.0/bin, OOM收紧heap至1536m. 人工门批准: 接受新栈继续Step5"
+    },
+    "5": {
+      "status": "done",
+      "attempts": 1,
+      "gate": "auto_approved",
+      "note": "Color.kt(JellyPalette 4套×light/dark马卡龙调色板)+Theme.kt(NGBookTheme(themeMode,palette,content), JellyThemeMode{SYSTEM,LIGHT,DARK})+Glass.kt(Modifier.jellyGlass 渐变半透明+白描边+投影)+MainActivity显式接入MATCHA/SYSTEM. verify: assembleDebug BUILD SUCCESSFUL in 21s"
+    },
+    "6": {
+      "status": "done",
+      "attempts": 3,
+      "gate": "auto_approved",
+      "note": "JellySettingsRepository(DataStore jelly_prefs, Flow<JellySettings>, setThemeMode/setPalette, name存储+enum容错回退)+MainActivity collectAsStateWithLifecycle驱动主题+JellyThemeTest 3例全绿. 校准: ①Robolectric test worker JVM不继承代理→tasks.withType<Test>转发http(s).proxy系统属性; ②compose rule同一测试禁止二次setContent→改并行双NGBookTheme捕获. 首拉android-all-instrumented-15成功, Robolectric 4.16.1+sdk35兼容确认"
+    },
+    "7": {
+      "status": "done",
+      "attempts": 1,
+      "gate": "auto_approved",
+      "note": "Models.kt(BookFormat 8值/LibraryBook/ReadMode/ReadingLocator)+LocatorCodec(v1:章:页:偏移:p|s, 非法5类拒绝, bookId不入串由进度表列承载)+FormatParser接口+ParsedBook sealed(Text/Comic)+TextChapter+LocatorCodecTest 8例全绿"
+    },
+    "8": {
+      "status": "done",
+      "attempts": 2,
+      "gate": "auto_approved",
+      "note": "room-ktx/room-compiler入依赖. BookEntity(books+index addedAt)/ProgressEntity(bookId主键FK CASCADE)/BookDao(Insert REPLACE upsert+lastReadAt优先排序+getById+deleteById)/ProgressDao(Upsert+Flow+count+delete)/NGBookDatabase v1/Room+DAO Hilt Module/LibraryRepository(filesDir/books uuid.ext拷贝导入+delete连带删文件)/ProgressRepository(save=get Flow经LocatorCodec+bookId回填)/DaoTest 4例全绿(含排序、upsert覆盖、外键级联). 校准: Room 2.8 RoomDatabase.query(String)签名变更为SupportSQLiteQuery→改DAO count(); 测试Context用RuntimeEnvironment.getApplication()避免androidx.test:core依赖"
+    },
+    "9": {
+      "status": "done",
+      "attempts": 2,
+      "gate": "auto_approved",
+      "note": "FormatSniffer(head/tail各64KB读, PDF%PDF→ZIP魔数+ISO-8859-1串搜container.xml=EPUB/图片后缀=CBZ/否则ZIP→偏移60 BOOKMOBI=MOBI→扩展名txt→UNKNOWN)+TxtCharsetDetector(BOM三分支→UTF-8严格REPORT校验→GBK REPORT解码+CJK 0x4E00-0x9FFF非空白占比≥0.6→兜底UTF_8, decode用REPLACE, stripBom). FormatSnifferTest 8例+TxtCharsetDetectorTest 9例纯JVM全绿. 校准: 不可见字符字面量(U+FEFF/U+FFFD)写入丢失→改\\u转义; String无.size用.length"
+    },
+    "10": {
+      "status": "done",
+      "attempts": 2,
+      "gate": "auto_approved",
+      "note": "TxtChapterSplitter按字符偏移逐行扫描(不split保offset精确, 行尾剔\\r容CRLF), TITLE_REGEX命中<2回退3000字第N部分, 空文件单空章, 章区间=[标题行起,下标题行起), title=trim截30字. 7例全绿(50章中文/阿拉伯混编边界连续、CRLF、无题回退、单题回退、空白容错、截断、空文件). 校准: ①Kotlin模板$i后接中文被并入标识符→${i}; ②trim按Character.isWhitespace会去全角空格U+3000. 用户中断一次后resumed"
+    },
+    "11": {
+      "status": "done",
+      "attempts": 1,
+      "gate": "auto_approved",
+      "note": "TextPaginator: Viewport(dp/sp+行距倍数+padding)→逐章StaticLayout测量(setLineSpacing(0,mult),setIncludePad=false), 行高=getLineBottom差分, line>0才断页保每页≥1行防死循环, PageSpec用全局字符偏移[chapterIndex,startOffset,endOffset). PagedDocument.globalIndexOf二分定位(双条件chapterIndex<目标或同章start<=off, 再校验offset in start..end含inclusive终点). 6例Robolectric(sdk35)全绿: 1万字10章>10页、幂等、边界连续、midpoint回定位、外来章-1、空章单空页. 确认Robolectric NATIVE graphics下StaticLayout真实文本度量可用(解除Step10遗留风险)"
+    },
+    "12": {
+      "status": "done",
+      "attempts": 2,
+      "gate": "auto_approved",
+      "note": "ShelfViewModel(combine books+observeAll进度+importing+snackbar→ShelfUiState, import(uris)拷至cacheDir临时文件→FormatSniffer嗅探→importFile(sniffed覆盖扩展名推断)→删临时, queryDisplayName经OpenableColumns, 点击路由TXT/EPUB其余Snackbar)+ProgressDao.getAll/ProgressRepository.observeAll(runCatching容非法locator)+importFile加sniffed参数+Theme加LocalIsDark供jellyGlass明暗+ShelfScreen(LazyVerticalGrid Adaptive150dp/jellyGlass卡片/首字hash三组渐变占位封面/角标/空态/FAB导入/OpenMultipleDocuments在MainActivity注册, shelfViewModel by viewModels()作用域共享)+NavGraph(shelf+reader_txt|epub/{bookId} LongType占位). 校准: ①Kotlin模板$label后接中文again重犯→${label}(Step10教训需全局执行); ②写后即清一段dead code空判断块. 偏差落账: workflow'进度百分比角标'改progressLabel'第N章·第M页'(书架不解析文件无总页数, P1合理简化). verify: assembleDebug BUILD SUCCESSFUL in 16s"
+    },
+    "13": {
+      "status": "done",
+      "attempts": 2,
+      "gate": "auto_approved",
+      "note": "ReaderViewModel(加载管线detect→decode→stripBom→split→locator恢复→repaginate锚定, onPageChange/onModeChange/onFontSizeChange±2clamp14-30/onViewportSize/onScrollChapterChange, persist即时写+onCleared独立saveScope兜底)+TextReaderScreen(翻页:HorizontalPager+StaticPage每页AndroidView画StaticLayout公式与paginator一致+左右1/3tap中央菜单+settledPage上报; 滚动:LazyColumn按章+snapshotFlow firstVisibleItemIndex上报; ReaderOverlay顶部标题页码/底部模式切换字号进度, jellyGlass)+NavGraph reader_txt接入TextReaderScreen(hiltViewModel从entry取bookId). 新增依赖hilt-navigation-compose 1.4.0(androidx.hilt, 实测metadata有stable). 校准: 编译迭代1错6处→①BOM2026 detectTapGestures onTap非suspend→rememberCoroutineScope包裹; ②Modifier.align需BoxScope→overlay内包Box(fillMaxSize); ③ExitTransition.plus(EnterTransition)返回EnterTransition→exit改slideOutVertically(targetOffsetY=), 顺带修trailing lambda实绑initialOffsetX的语义bug→全部具名参数. 编译前自查修3处: TextChapter错引domain.text(实为domain.parser), 空章节coerceIn(0,-1)崩溃隐患, 滚动恢复改initialFirstVisibleItemIndex防首帧误报章0覆盖恢复值. 偏差落账: workflow'滚动位置映射scrollOffset'简化为章级定位(scrollOffset=chapter.startOffset, 页内偏移P1不做). verify: assembleDebug BUILD SUCCESSFUL in 49s"
+    },
+    "14": {
+      "status": "done",
+      "attempts": 6,
+      "gate": "auto_approved",
+      "note": "EpubParseTest failures=0 + assembleDebug BUILD SUCCESSFUL in 1m41s, app-debug.apk 17.2MB. Readium 3.4.0(shared+streamer)+desugar_jdk_libs 2.1.5+coreLibraryDesugaring. EpubFormatParser(AssetRetriever+DefaultHttpClient+EpubParser→Publication, unzipToCache整书解压cacheDir+zip-slip防护), EpubReaderViewModel(loadBook/selectChapter/scrollReports debounce600 persist/onCleared saveScope), EpubReaderScreen(WebView loadDataWithBaseURL渲染+dark invert滤镜evaluateJavascript+pendingScrollY恢复+TOC抽屉jellyGlass), NavGraph reader_epub接入删占位. 校准5轮+人工授权第6轮: #1 desugaring缺失; #2 Link.title/Metadata.title实为String?(javap平台类型误导)+AnimatedVisibility DSL_SCOPE_VIOLATION; #3 Box包裹无效; #4 断言败→修样本manifest补item title(逐行重写v3成功,minidom校验); #5 字节码实证EpubParser与ManifestAdapter完全不读OPF item title→escalate, 用户裁决toc回填; #6 publication.manifest.tableOfContents属性名(getter getTableOfContents非toc)+一次绿. 关键新知: Robolectric×Readium实链路可跑(解除头号风险); AnimatedVisibility修法=提取独立@Composable(TocDrawer); MutableStateFlow.update lambda非suspend须前置suspend调用. 偏差落账: ①整书解压+baseUrl替代按需解压(P1秒开语义由cache复用保证); ②章节标题从nav.xhtml tableOfContents按href匹配回填(streamer不读item title); ③locator page=0/scrollOffset=scrollY/SCROLL. 遗留warning不阻塞: debounce FlowPreview, hiltViewModel迁包deprecation"
+    },
+    "15": {
+      "status": "done",
+      "attempts": 4,
+      "gate": "human_approved_round4",
+      "note": "ProgressResumeTest 3例全绿(tests=3 failures=0 errors=0, 13.2s): txtSavedPageTwelveIsRestoredAfterReopen 1.56s / fontSizeChangeKeepsSavedContentAnchor / epubOpensAtSavedChapterAndScroll 7.2s. 迭代史: #1 ViewModel.clear() internal→改ViewModelStore.put+clear公开路径; #2 超时; #3 超时+线程取证(发现saveScope×DB-close竞态: onCleared兜底写库与@After database.close抢跑, stderr实证IllegalStateException re-open already-closed), 3轮预算耗尽→escalate, 用户裁决授权第4轮(定向修@After排空+测试2稳健判据). #4a 双探针(scope金丝雀+外部金丝雀+lateProbe cause链)取证: scope=RAN/scopeCompleted=true/lateCause=null/system-err全空(排空修复runBlocking{delay(1000)}生效), 推翻前轮'协程从未入队'结论→真因=MutableStateFlow等值去重(Robolectric下StaticLayout测量不随fontSize变化, 新旧PagedDocument结构相等→data class copy被update吞掉, document!==doc1永不成立). #4b 判据从'引用更换'改哨兵协程vm.viewModelScope.launch(Dispatchers.Default){}.join(), 全绿. 附带修复产品缺陷(非Robolectric假象): onFontSizeChange在viewportPx==null时仍launch重排且anchorOffset=null→重开时序(先字号后视口)下该job会读到已设好的视口并以anchor=null重排, 走'本章首页'回退把保存位置2906吞成1544→改为视口未测量时只记录字号不排队重排(视口到来时带正确锚点重排). 偏差落账: (b)用例判据=内容锚点startOffset落库+重开同锚点, 非字面'初始页号相等'(字号变化必然改页数, 以字符偏移锚定才是正确语义); 哨兵join非严格FIFO保证, Robolectric派发时序移交Step17真机复验"
+    },
+    "16": {
+      "status": "done",
+      "attempts": 1,
+      "gate": "auto_approved",
+      "note": "开源收尾三产物齐备. LICENSE: curl gnu.org gpl-3.0.txt HTTP200 35149B/674行. README.md: 69行中文, 含简介(GPL-3.0/com.book.ng/0.1.0)、功能清单(已实现与未实现诚实分列: SAF导入+魔数嗅探/TXT编码识别切章分页/翻页滚动双模式/字号重排锚点保持/EPUB Readium+WebView+反色+TOC/locator三处写回续读/书架网格进度角标/JellyTheme明暗×四配色; 未实现: 卷曲仿真+水墨楷体/书签笔记/PDF-MOBI-AZW3-CBZ实际渲染/在线源聚合/批量下载导出)、五阶段路线图(P1标注'代码与单测完成, 待全量回归与真机验收')、构建工具链表+命令、免责声明6条. 每条事实先读源核验(settings.gradle.kts aliyun镜像行/app/build.gradle.kts 代理转发+compileSdk37/libs.versions.toml版本矩阵/docs/designs/ngbook.md Phase表). .gitignore: 新建(.gradle/build/app/build/.kotlin/local.properties/.ngbook-env/.idea/*.iml/captures/.cxx/.hotl/logs, *.apk排除但保留src内测试资源). 仓库卫生: git rm -r --cached 摘除误入库构建产物773个+build/reports 1个+环境注入文件(local.properties/.ngbook-env), rm 删除环境注入的3字节垃圾文件'##', 跟踪文件 808->53(文件均留盘). 偏差落账: workflow预案单笔'chore: open-source housekeeping'提交->实际拆两笔保历史卫生(bca9923 feat 功能代码23文件+2253行 / d40cdd0 chore 开源收尾), verify契约(末笔subject含open-source housekeeping)不受影响. 未push远端, 仅本地分支 hotl/p1-local-reading. verify: test -f LICENSE -a -f README.md -a -f .gitignore && git log -1 --pretty=%s | grep -q 'open-source housekeeping' -> VERIFY_OK; git status --short 空(工作树干净)"
+    },
+    "17": {
+      "status": "done",
+      "attempts": 1,
+      "gate": "human_deferred_selftest",
+      "note": "全量回归(强制 --rerun, 非缓存): 9 测试类 49 例全绿 failures=0 errors=0 skipped=0, 累计 13.28s. 明细: DaoTest4/FormatSnifferTest8/EpubParseTest1/LocatorCodecTest8/TxtChapterSplitterTest7/TxtCharsetDetectorTest9/ProgressResumeTest3/TextPaginatorTest6/JellyThemeTest3. APK: app/build/outputs/apk/debug/app-debug.apk 17272293B(16.47MiB), aapt2 实测 package=com.book.ng versionCode=1 versionName=0.1.0 minSdk24 targetSdk35 compileSdk37. workflow 两条 verify 均通过(BUILD SUCCESSFUL + apk artifact). tag: p1-local-reading-done(annotated, 打在记账提交 bde60f1). 版本矩阵定稿见 README 与 libs.versions.toml. 人工门裁决: 用户选择'先按通过落账, 我自测'->真机 8 项验收(导入TXT含UTF-8/GBK、导入EPUB秒开+TOC+反色、翻页/滚动切换、字号连改不回书首、杀进程续读、明暗×四配色、logcat无崩溃)列为**待复验项**, 不阻塞 P1 关闭. 环境限制如实登记: 沙箱无 /dev/kvm、无 emulator、adb 无设备->无法在沙箱内做真机/模拟器冒烟. 移交项: ①Robolectric 哨兵 join 非严格 FIFO, 字号重排时序以真机复验为准(承 Step15); ②非阻塞 deprecation: debounce 需 @OptIn(FlowPreview::class)、hiltViewModel 迁包告警; ③Gradle wrapper 未生成(依赖 PATH 注入 9.6.0); ④远端 push 与 PR 未做(等分支处置决策). P2 意向(用户勾选全部四项+新问): 书签/笔记/高亮、仿真翻页+水墨楷体、PDF/MOBI/AZW3/CBZ 渲染补齐、在线漫画源聚合+批量下载导出, 另问'翻页支持上下吗'(已答: P1 有 SCROLL 上下连续滚动, 垂直逐屏翻页未实现)"
+    }
+  },
+  "hotfix_txt_infinite_loading": {
+    "date": "2026-09-13",
+    "reported_by": "用户真机自测（debug APK）：导入 txt 打开一直转圈",
+    "root_cause": "TextReaderScreen 的 onSizeChanged 挂在仅 document!=null 才渲染的 PagingContent 内，ReaderViewModel 须先有视口才首次分页 → 循环等待死锁；Robolectric 旧测试手工调 onViewportSize 绕过 UI 布线故未拦截",
+    "fix": "视口上报上移至 TextReaderScreen 最外层 Box（无条件渲染），与文档加载解耦；PagingContent 仅保留本地排版测量",
+    "regression": "PagingViewportContractTest 端到端：真 UI+真 VM+内存库，不手工调视口，断言 TXT 自动分页；修复前 ComposeTimeoutException(5000ms) 复现转圈（RED），修复后 GREEN",
+    "verification": "全量回归 50 例全绿（49 旧+1 新，--rerun 强制）；assembleDebug 成功，APK 17172075B @ 10:52",
+    "commit": "09a5660",
+    "next": "用户重装 debug APK 复验 TXT/EPUB 打开、翻页、字号、模式切换、退出重进续读"
   }
 }
