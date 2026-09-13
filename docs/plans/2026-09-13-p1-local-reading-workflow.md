@@ -88,40 +88,40 @@ max_iterations: 4
 verify: bash -lc 'set -a; . /workspace/.ngbook-env; cd /workspace && gradle :app:testDebugUnitTest --tests "*FormatSniffer*" --tests "*TxtCharset*" --console=plain' 2>&1 | grep -q 'BUILD SUCCESSFUL'
 gate: auto
 
-- [ ] **Step 10: TXT 章节切分器 + 测试**
+- [x] **Step 10: TXT 章节切分器 + 测试**
 action: 创建 `domain/text/TxtChapterSplitter.kt`——按行扫描，正则匹配标题行 `^\s*(第\s*[0-9〇零一二三四五六七八九十百千万两]+\s*[章卷回节篇集]|序言|前言|楔子|后记|尾声|附录)`（允许行尾空白、CRLF），命中则以前一行为上一章边界，生成 List<TextChapter>（index、title=该行截 30 字、startOffset/endOffset 为字符区间）；命中数<2 时回退固定 3000 字切章并命名"第N部分"；空文件返回单空章；测试覆盖：50 章中文数字+阿拉伯混编、CRLF 文件、无章节书回退、标题行前后空白容错。
 loop: until 测试全绿
 max_iterations: 3
 verify: bash -lc 'set -a; . /workspace/.ngbook-env; cd /workspace && gradle :app:testDebugUnitTest --tests "*TxtChapterSplitter*" --console=plain' 2>&1 | grep -q 'BUILD SUCCESSFUL'
 gate: auto
 
-- [ ] **Step 11: TXT 分页器（StaticLayout 测量）+ 测试**
+- [x] **Step 11: TXT 分页器（StaticLayout 测量）+ 测试**
 action: 创建 `feature/reader/text/TextPaginator.kt`——输入 List<TextChapter> 与 Viewport(宽dp、高dp、字号sp、行距倍率、内边距)，用 android.text.StaticLayout 逐章测量断页，输出 PagedDocument(pages: List<PageSpec(chapterIndex, startOffset, endOffset)>, pageCount) 与 API：pageAt(i)、globalIndexOf(chapterIndex, charOffset)（二分）、相邻页边界连续校验；测试（Robolectric 提供真实文本度量）：1 万字样本在 360×640/18sp 下 pageCount>10、同参数重复分页结果一致、pageAt 区间首尾相接无重叠、globalIndexOf 命中所在页。
 loop: until 测试全绿
 max_iterations: 4
 verify: bash -lc 'set -a; . /workspace/.ngbook-env; cd /workspace && gradle :app:testDebugUnitTest --tests "*TextPaginator*" --console=plain' 2>&1 | grep -q 'BUILD SUCCESSFUL'
 gate: auto
 
-- [ ] **Step 12: 书架页 + SAF 导入 + 路由**
+- [x] **Step 12: 书架页 + SAF 导入 + 路由**
 action: 创建 `feature/shelf/ShelfViewModel.kt`（Hilt 注入 LibraryRepository，StateFlow<ShelfUiState>：books/isEmpty/importing 进度消息）、`feature/shelf/ShelfScreen.kt`——LazyVerticalGrid 卡片（jellyGlass 面 + 书名首字渐变占位封面 + 标题 + 进度百分比角标）、顶栏标题 NGBook、右下 FAB"导入"启动 Activity result 契约 `OpenMultipleDocuments`（mime */* 多选），onResult 逐份 contentResolver 流式拷贝并嗅探入库，非本地支持格式仅入库不路由；未知格式卡片点击 Snackbar "该格式将在后续阶段支持"；创建 `ui/nav/NavGraph.kt` navigation-compose：routes shelf、reader_txt/{bookId}、reader_epub/{bookId}；MainActivity 接管 SAF 回调并接入导航。
 verify: bash -lc 'set -a; . /workspace/.ngbook-env; cd /workspace && gradle :app:assembleDebug --console=plain' 2>&1 | grep -q 'BUILD SUCCESSFUL'
 gate: auto
 
-- [ ] **Step 13: TXT 阅读器（翻页/滚动双模式 + 进度写回）**
+- [x] **Step 13: TXT 阅读器（翻页/滚动双模式 + 进度写回）**
 action: 创建 `feature/reader/text/ReaderViewModel.kt`——加载 TXT（检测编码→切章→分页），收集 ReadingLocator 恢复初始页，暴露 state(当前页、章节号、mode、fontSize) 与 onPageChange/onModeChange/onFontSizeChange，页面变化与 onCleared 时 LocatorCodec 写回 ProgressRepository；`TextReaderScreen.kt`——模式 A 翻页：HorizontalPager 每页 Canvas 绘制 StaticLayout，左右 1/3 点击=上/下一页、中央=浮层菜单；模式 B 滚动：LazyColumn 按章渲染全文，滚动位置映射 locator.scrollOffset；浮层菜单（jellyGlass 面板）：翻页/滚动切换、字号 -/+（14–30sp）、顶部章节标题底部进度条；TXT 格式路由接入 reader_txt。
 loop: until assembleDebug 成功
 max_iterations: 3
 verify: bash -lc 'set -a; . /workspace/.ngbook-env; cd /workspace && gradle :app:assembleDebug --console=plain' 2>&1 | grep -q 'BUILD SUCCESSFUL'
 gate: auto
 
-- [ ] **Step 14: EPUB 样本构造 + Readium 最简链路**
+- [x] **Step 14: EPUB 样本构造 + Readium 最简链路**
 action: 构造测试样本——在 /tmp/epubsrc 建 `mimetype`（内容 application/epub+zip，zip -X -0 首个存储条目）、META-INF/container.xml（指向 OEBPS/content.opf）、content.opf（title=测试之书，manifest+spine 三章）、nav.xhtml 与三节 xhtml（各含标题与 500 字文本），`zip -X -0 ../sample.epub mimetype && zip -X -r -9 ../sample.epub META-INF OEBPS`，拷入 `app/src/test/assets/sample.epub`（unzip -t 校验）；添加依赖 org.readium.kotlin-toolkit:readium-shared:3.4.0（版本目录 readium 条目，失败回退 3.3.0）；创建 `data/parser/EpubFormatParser.kt`——Readium EpubParser+Asset 打开 filesDir 文件→提取 title/author/spine 目录 List<TextChapter> 级结构；`feature/reader/epub/EpubReaderScreen.kt`——左栏章节目录 + AndroidView(WebView) 渲染当前章 XHTML（注入本地图片路径与基础反色样式跟随明暗），切章即翻页，locator 保存 {chapterIndex, scrollY}；reader_epub 路由接入；测试 `EpubParseTest.kt`（Robolectric 读 assets 样本：断言 title=测试之书 且 spine 章节数=3）。
 loop: until EpubParseTest 绿且 assembleDebug 成功
 max_iterations: 5
 verify: bash -lc 'set -a; . /workspace/.ngbook-env; cd /workspace && gradle :app:testDebugUnitTest --tests "*EpubParse*" :app:assembleDebug --console=plain' 2>&1 | grep -q 'BUILD SUCCESSFUL'
 gate: auto
 
-- [ ] **Step 15: 续读链路端到端测试**
+- [x] **Step 15: 续读链路端到端测试**
 action: 创建 `app/src/test/java/com/book/ng/feature/ProgressResumeTest.kt`（Robolectric）——(a) TXT：1.5 万字样本建书→ReaderViewModel 分页→模拟跳转第 12 页并触发保存→以新 ReaderViewModel 实例+持久层重开→断言初始页=12；(b) TXT 改字号后重开→locator 仍命中保存时页；(c) EPUB：以 sample.epub 元数据构造 locator chapterIndex=2→重开 ReaderViewModel 恢复章节=2；确认 ProgressRepository 写回发生在页面变化与 ViewModel onCleared 两处。
 loop: until ProgressResumeTest 全绿
 max_iterations: 3

@@ -6,6 +6,8 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 enum class JellyThemeMode {
@@ -13,6 +15,8 @@ enum class JellyThemeMode {
     LIGHT,
     DARK,
 }
+
+val LocalIsDark = staticCompositionLocalOf { false }
 
 private val JellyTypography = Typography()
 
@@ -54,9 +58,11 @@ fun NGBookTheme(
         JellyThemeMode.LIGHT -> false
         JellyThemeMode.DARK -> true
     }
-    MaterialTheme(
-        colorScheme = jellyColorScheme(jellyColors(palette, isDark), isDark),
-        typography = JellyTypography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalIsDark provides isDark) {
+        MaterialTheme(
+            colorScheme = jellyColorScheme(jellyColors(palette, isDark), isDark),
+            typography = JellyTypography,
+            content = content,
+        )
+    }
 }

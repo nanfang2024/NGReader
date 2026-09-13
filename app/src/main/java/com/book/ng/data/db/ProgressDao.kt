@@ -13,6 +13,9 @@ interface ProgressDao {
     @Query("SELECT * FROM progress WHERE bookId = :bookId")
     fun getByBookId(bookId: Long): Flow<ProgressEntity?>
 
+    @Query("SELECT * FROM progress")
+    fun getAll(): Flow<List<ProgressEntity>>
+
     @Query("SELECT COUNT(*) FROM progress")
     suspend fun count(): Int
 

@@ -10,10 +10,22 @@ data class TextChapter(
     val endOffset: Int,
 )
 
+data class EpubChapter(
+    val index: Int,
+    val title: String,
+    val href: String,
+)
+
 sealed interface ParsedBook {
     data class Text(
         val title: String,
         val chapters: List<TextChapter>,
+    ) : ParsedBook
+
+    data class Epub(
+        val title: String,
+        val author: String?,
+        val chapters: List<EpubChapter>,
     ) : ParsedBook
 
     data class Comic(

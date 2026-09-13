@@ -3,14 +3,12 @@ package com.book.ng
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.book.ng.feature.shelf.ShelfViewModel
+import com.book.ng.ui.nav.NGBookNavHost
 import com.book.ng.ui.settings.JellySettings
 import com.book.ng.ui.settings.JellySettingsRepository
 import com.book.ng.ui.theme.NGBookTheme
@@ -22,6 +20,16 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var settingsRepository: JellySettingsRepository
 
+    private val shelfViewModel: ShelfViewModel by viewModels()
+
+    private val importLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (!uris.isNullOrEmpty()) {
+            shelfViewModel.import(uris)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -32,18 +40,11 @@ class MainActivity : ComponentActivity() {
                 themeMode = settings.themeMode,
                 palette = settings.palette,
             ) {
-                CenteredTitle()
+                NGBookNavHost(
+                    shelfViewModel = shelfViewModel,
+                    onImport = { importLauncher.launch(arrayOf("*/*")) },
+                )
             }
         }
-    }
-}
-
-@Composable
-private fun CenteredTitle() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = "NGBook")
     }
 }

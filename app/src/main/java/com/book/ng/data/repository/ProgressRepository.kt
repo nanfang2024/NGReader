@@ -29,6 +29,15 @@ class ProgressRepository @Inject constructor(
             entity?.let { LocatorCodec.decode(it.locator).copy(bookId = it.bookId) }
         }
 
+    fun observeAll(): Flow<Map<Long, ReadingLocator>> =
+        progressDao.getAll().map { rows ->
+            rows.mapNotNull { entity ->
+                runCatching { LocatorCodec.decode(entity.locator).copy(bookId = entity.bookId) }
+                    .getOrNull()
+                    ?.let { entity.bookId to it }
+            }.toMap()
+        }
+
     suspend fun delete(bookId: Long) {
         progressDao.deleteByBookId(bookId)
     }

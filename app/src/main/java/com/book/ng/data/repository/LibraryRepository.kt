@@ -24,18 +24,27 @@ class LibraryRepository @Inject constructor(
 ) {
     val books: Flow<List<LibraryBook>> = bookDao.getAll().map { rows -> rows.map(BookEntity::toDomain) }
 
-    suspend fun importFile(displayName: String, source: InputStream): LibraryBook {
+    suspend fun importFile(
+        displayName: String,
+        source: InputStream,
+        sniffed: BookFormat? = null,
+    ): LibraryBook {
         val extension = displayName.substringAfterLast('.', "bin").lowercase()
         val storedName = "${UUID.randomUUID()}.$extension"
         val target = File(booksDir(), storedName)
         withContext(Dispatchers.IO) {
             target.outputStream().use { output -> source.copyTo(output) }
         }
+        val format = if (sniffed != null && sniffed != BookFormat.UNKNOWN) {
+            sniffed
+        } else {
+            extensionToFormat(extension)
+        }
         val entity = BookEntity(
             title = displayName.substringBeforeLast('.'),
             author = null,
             fileName = storedName,
-            format = extensionToFormat(extension).name,
+            format = format.name,
             addedAt = System.currentTimeMillis(),
             lastReadAt = null,
         )
